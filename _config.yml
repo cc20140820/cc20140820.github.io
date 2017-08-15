@@ -3,9 +3,9 @@ title: NeroHero
 subtitle: 约修亚的ROOM
 welcome_message: <a href="https://github.com/cc20140820" target="_blank">我的Github</a>
 description: ALL FOR ONE.ONE FOR ALL.
-creator: <a href="http://onev.cat">@onevcat</a>
+creator: <a href="https://github.com/cc20140820">@Nero</a>
 
-url: "http://vno.onevcat.com"
+url: "https://cc20140820.github.io/"
 
 permalink: /:year/:month/:title/
 
@@ -22,7 +22,7 @@ blog_button:
 
 # Navigation buttons in the front page.
 nav:
-    - {title: Projects, description: My Projects, url: 'http://project.onevcat.com'}
+    - {title: Projects, description: My Projects, url: 'https://github.com/cc20140820'}
     # - {title: Another Button, description: A button, url: 'http://example.com'}
 
 # Pagination
@@ -37,11 +37,11 @@ comment:
 
 # Social
 social:
-    weibo: onevcat
-    github: onevcat
-    twitter: onevcat
+    weibo: Nero
+    github: Nero
+    twitter: Nero
     gplus: 107108267983477358170
-    mail: onev@onevcat.com
+    mail: 510448079@qq.com
 
 # Google Analytics
 ga:
