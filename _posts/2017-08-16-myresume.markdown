@@ -1,10 +1,11 @@
 ---
 layout: post
-title: 我的简历
+title: I am what I am
 date: 2017-08-16 15:32:24.000000000 +09:00
 ---
 ##### 曹瀚文 | 男 | 22岁
 ##### 淮阴工学院 | 物联网工程
+##### 江苏 | 扬州
 ##### 510448079@qq.com
 <br>
 
@@ -21,7 +22,7 @@ date: 2017-08-16 15:32:24.000000000 +09:00
 >
 > 熟悉 **Github**  和 **Github Pages** 的使用
 >
->熟悉 **Java，Android** ,开发安卓应用
+>熟悉 **Java，Android** ,开发过安卓应用
 >
 >熟悉 **Php Mysql** ；掌握基本**MySQL查询语句**，当前正开发大学体测管理系统
 
@@ -45,7 +46,7 @@ date: 2017-08-16 15:32:24.000000000 +09:00
 ----------
 
 
->1.设计开发了基于bootstrap响应式的[企业站](www.yysmarthome.com)
+>1.设计开发了基于bootstrap响应式的[企业站](http://www.yysmarthome.com)
 >+ 使用bootstrap实现了适配于不同设备浏览器的响应式开发
 >+ 调用了[高德地图API](http://lbs.amap.com/api/javascript-api/summary/)
 >+ 调用了第三方[“问卷网”](https://www.wenjuan.com/)提供的问卷
