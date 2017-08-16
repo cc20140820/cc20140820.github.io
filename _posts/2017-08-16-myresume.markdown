@@ -3,10 +3,10 @@ layout: post
 title:  I am Chw
 date: 2017-08-16 15:32:24.000000000 +09:00
 ---
-##### 曹瀚文 | 男 | 22岁
-##### 淮阴工学院 | 物联网工程
-##### 江苏 | 扬州
-##### 510448079@qq.com
+<h5 style="text-shadow: 1px 1px 1px #e8e7e3;font-family:'微软雅黑'">曹瀚文 | 男 | 22岁</h5>
+<h5 style="text-shadow: 1px 1px 1px #e8e7e3;font-family:'微软雅黑'">淮阴工学院 | 物联网工程</h5>
+<h5 style="text-shadow: 1px 1px 1px #e8e7e3;font-family:'微软雅黑'">江苏 | 扬州</h5>
+<h5 style="text-shadow: 1px 1px 1px #e8e7e3;font-family:'微软雅黑'">510448079@qq.com</h5>
 <br>
 
 ### <span style="color:#9b2424"># </span>知识结构
