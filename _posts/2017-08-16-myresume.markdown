@@ -51,7 +51,7 @@ date: 2017-08-16 15:32:24.000000000 +09:00
 >+ 调用了[高德地图API](http://lbs.amap.com/api/javascript-api/summary/)
 >+ 调用了第三方[“问卷网”](https://www.wenjuan.com/)提供的问卷
 >
->2.设计开发了[淮阴工学院体育部官网](http://aqjywedding.com.ali2.3sz.cn/)
+>2.设计开发了[淮阴工学院体育部官网](http://tyjxb.hyit.edu.cn/)
 >
 >3.设计开发了安卓应用
 >+ 应用说明：通过手机扫描绘本中的插画，进而在屏幕显示插画内容的动态效果
