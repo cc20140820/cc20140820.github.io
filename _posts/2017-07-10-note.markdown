@@ -3,9 +3,7 @@ layout: post
 title:  data-toggle 与 data-target 分别是什么作用
 date: 2017-07-10 20:32:24.000000000 +09:00
 ---
-### data-toggle 与 data-target 分别是什么作用
 
-@(前端)[Bootstrap|H5]
 
 **HTML5**允许开发者自由为其标签添加属性，这种自定义属性一般用`data-`开头
 
