@@ -1,0 +1,60 @@
+---
+layout: post
+title:  angular学习笔记一
+date: 2017-10-29 14:32:24.000000000 +09:00
+---
+
+- **ng-app 初始化一个 AngularJS 应用程序**
+- **ng-init 指令初始化应用程序数据(一般不用此方法初始化)**
+- **ng-model 指令把元素值（比如输入域的值）绑定到应用程序**
+- **ng-repeat 指令对于集合中（数组中）的每个项会 克隆一次 HTML 元素**
+- **ng-controller 创建一个控制器**
+- **ng-show 值为true显示值为false不显示**
+- **ng-bind 绑定值和表达式{{}}差不多**
+
+-------
+
+**directive 创建自定义指令**
+
+``` python
+var app = angular.module("myApp", []);
+app.directive("myDirective", function() {
+ return {
+ restrict : "C", //可以用类来调用这个指令
+ template : "<h1>自定义指令!</h1>"
+ };
+});
+```
+
+元素名调用
+`<my-directive></my-directive>`
+
+属性调用
+`<div my-directive></div>`
+
+类名调用
+`<div class=”my-directive”></div>`
+
+注释调用
+`<!– 指令: runoob-directive –>`
+
+$scope      局部作用域
+$rootScope  全局作用域    
+$timeout 计时器  （angular中也有和JS差不多形式的作用域存在）
+
+form表单（表单是按name值进行取值）
+- **$valid  表单输入合法为true**
+- **$dirty  表单内容是否改变**
+- **$touched 是否通过触屏点击(我测了下，鼠标也行)**
+- **$error 表单输入错误为true**
+
+**通过在表达式后面加 | 来添加过滤器，过滤器后面可以加冒号添加参数**
+>例如
+{{ price * num |  currency:’￥’}}
+currency 格式化数字为货币格式
+filter 从数组中选择一个子集
+lowercase 格式化字符串为小写
+uppercase 格式化字符串为大写
+orderBy 根据某个表达式排列数组
+
+笔记先到这了，比较乱。。。下次继续
