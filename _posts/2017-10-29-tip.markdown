@@ -49,12 +49,12 @@ form表单（表单是按name值进行取值）
 - **$error 表单输入错误为true**
 
 **通过在表达式后面加 | 来添加过滤器，过滤器后面可以加冒号添加参数**
->例如
-{{ price * num |  currency:’￥’}}
-currency 格式化数字为货币格式
-filter 从数组中选择一个子集
-lowercase 格式化字符串为小写
-uppercase 格式化字符串为大写
-orderBy 根据某个表达式排列数组
+>For example
+>{{ price * num |  currency:’￥’}}
+>currency 格式化数字为货币格式
+>filter 从数组中选择一个子集
+>lowercase 格式化字符串为小写
+>uppercase 格式化字符串为大写
+>orderBy 根据某个表达式排列数组
 
 笔记先到这了，比较乱。。。下次继续
