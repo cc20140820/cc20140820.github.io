@@ -37,21 +37,19 @@ date: 2017-11-02 08:32:24.000000000 +09:00
 
 a)使用html5shim：
 在<head>中调用以下代码：
-
-       ``` python
-       <!--[if lt IE 9]>  
-           <script> src="http://html5shim.googlecode.com/svn/trunk/html5.js"</script>  
-       <![endif]-->  
-       ```
+``` python
+<!--[if lt IE 9]>  
+     <script> src="http://html5shim.googlecode.com/svn/trunk/html5.js"</script>  
+ <![endif]-->  
+```
 
 b)使用kill IE6
 在</body>之前调用以下代码：
-
-       ``` python
-       <!--if lte IE 6]>  
-           <script src="http://letskillie6.googlecode.com/svn/trunk/letskillie6.zh_CN.pack.js"></script>   
-       <![endif]-->  
-       ```
+``` python
+<!--if lte IE 6]>  
+    <script src="http://letskillie6.googlecode.com/svn/trunk/letskillie6.zh_CN.pack.js"></script>   
+<![endif]-->  
+```
 
 4)DOCTYPE声明、新增的元素
 
