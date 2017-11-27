@@ -45,7 +45,7 @@ date: 2017-11-27 16:22:24.000000000 +09:00
 
 &&(短路与) 效率更高（推荐）
 
-(短路或) 效率更高（推荐）
+ll(短路或) 效率更高（推荐）
 
 -------
 
@@ -59,7 +59,7 @@ switch()括号中的类型只能为int或String(byte short char可自转int)
 
 - 内存结构
 
-![JVM]()
+![JVM](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/jvm.jpg)
 
 堆内存和方法区内存各有一个。一个线程一个栈内存
 
