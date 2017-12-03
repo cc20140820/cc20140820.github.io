@@ -1,0 +1,124 @@
+---
+layout: post
+title:  Java学习小结(2)
+date: 2017-12-03 16:22:24.000000000 +09:00
+---
+
+>紧接着之前的笔记，还是围绕基础的语法知识。打好基础~
+
+1.**发生方法覆盖(override/overwrite)的条件**
+
+- 发生在具有继承关系的两个类之间
+- 相同的方法名、返回值类型、参数列表，只有方法体不同
+- 重写的方法不能比被重写的方法拥有更低的访问权限
+- 重写的方法不能比被重写的方法抛出更宽泛的异常
+- 私有方法不能被覆盖、静态方法不需要覆盖、构造方法不存在覆盖
+- 覆盖和成员变量无关
+
+-------
+
+2.**static关键字**
+
+- 静态变量：当所有对象都有这个属性、并且这个属性对应的值都是一样的，这时声明为静态变量
+           静态变量在类加载时初始化，并且只初始化一次
+
+- 静态方法：一般工具类采用静态方法，方便调用
+
+- 静态代码块：static{},在类加载时执行。{}实例语句块，在构造方法调用之前执行
+
+-------
+
+3.**super关键字**
+
+>定义：super指的是当前子类中的父类型特征
+
+![JVM](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/super.png)
+
+构造方法中的this与super：
+- this：构造方法调用构造方法
+- super：通过子类构造方法调用父类构造方法
+
+语法规则：一个构造方法第一行如果没有this(...)也没有显式去调用super(...),系统会默认第一行调用super()
+         this与super的使用都是建立在对象的基础上，而static方法没有对象，所以不能用于static方法中
+
+-------
+
+4.**final关键字**
+
+>final代表最终的、不可更改的
+
+final修饰的变量一旦赋值不可改变
+
+final修饰的方法无法被覆盖
+
+final修饰的类无法被继承
+
+-------
+
+5.**抽象类(abstract)**
+
+语法规则：
+
+1.无法被实例化
+2.虽然无法实例化，但抽象类也有构造方法，是用于子类调用的
+3.在抽象类中可定义抽象方法，抽象方法没有方法体
+4.一个非抽象类继承抽象类，必须将父类中的抽象方法覆盖
+
+-------
+
+6.**接口(interface)**
+
+- 语法规则：
+
+1.接口中只能出现常量(public static final)、抽象方法(public abstract),括号内容可直接省略
+2.一个类可以实现多个接口
+3.接口与接口之间，可多继承
+4.一个非抽象类实现接口，必须将接口中所有方法实现(implements)
+
+- 接口的作用：
+
+1.可以使项目分层，所有层都面向接口开发，提升开发效率
+2.接口使代码之间的耦合度降低，变得“可插拔”
+
+
+For Example：
+从以下代码可以发现，ServiceImpl与Test面向接口编程，互相分离
+
+Engine.java(Service)
+```
+public interface Engine {
+	void start();
+}
+```
+
+Honda.java/YAMAHA.java/.....(ServiceImpl)
+```
+public class Honda implements Engine {
+	@Override
+	public void start() {
+		System.out.println("Honda!!!");
+	}
+}
+
+public class YAMAHA implements Engine {
+	@Override
+	public void start() {
+		System.out.println("YAMAHA!!!!!");
+	}
+}
+```
+
+Car.java(Test)
+```
+public class Car {
+	private Engine e;
+
+	public Car(Engine e){
+		this.e=e;
+	}
+
+	public void drive(){
+		e.start();
+	}
+}
+```
