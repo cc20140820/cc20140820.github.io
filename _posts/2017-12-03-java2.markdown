@@ -120,3 +120,55 @@ public class Car {
 	}
 }
 ```
+
+-------
+
+7.**异常(Exception)**
+
+语法规则：
+
+- throws(抛出异常，跟在方法名后)，将异常推卸给上层
+- try(可能会抛出异常的代码)...catch(具体异常)...finally(必定执行的代码),将异常捕捉并解决
+- getMessage()返回异常关键信息，printStackTrace()返回异常的详细信息
+
+For Example：自定义异常与手动抛出异常
+
+IllegalText.java(自定义异常类)
+```
+public class IllegalText extends Exception {
+	//定义异常一般提供两个构造方法
+	public IllegalText(){}
+	public IllegalText(String msg){
+		super(msg);
+	}
+}
+```
+
+CustomService.java(相关业务类)
+```
+public class CustomService {
+	public void register(String name) throws IllegalText{
+		if(name.length()<6){
+			IllegalText e = new IllegalText("长度底于6！");
+			throw e;
+		}
+		System.out.println("格式通过！");
+	}
+}
+```
+
+Test.java(测试类)
+```
+public class Test {
+	public static void main(String[] args) {
+		String name="jack";
+		CustomService cs=new CustomService();
+		try{
+		cs.register(name);
+		}catch(IllegalText e){
+			System.out.println(e.getMessage());
+		}
+	}
+}
+
+```
