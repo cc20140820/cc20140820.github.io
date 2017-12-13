@@ -1,0 +1,180 @@
+---
+layout: post
+title:  Java学习小结(io流)
+date: 2017-12-13 20:12:24.000000000 +09:00
+---
+
+>毕设做socket通信时涉及到了io流，所以花了2天学习了一些io常用的代码，在此总结一下
+
+1.**流(Stream)的概念**
+
+![JVM](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/iosummary.png)
+
+-------
+
+2.**UML图**
+
+>这次只学习了16个流，以下用 UML图展示出之间的关系
+
+![JVM](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/UML1.png)
+
+![JVM](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/UML2.png)
+
+-------
+
+3.**FileInputStream与FileOutputStream实现Copy**
+
+>以字节方式读写数据
+
+```
+FileInputStream fis = new FileInputStream("D:/hahaha.txt");
+FileOutputStream fos = new FileOutputStream("D:/hhh.txt",true);
+
+byte[]bytes=new byte[1024];//每次传输1kb
+int temp=0;//实际读取的字节数
+while((temp=fis.read(bytes))!=-1){
+  fos.write(bytes,0,temp);
+}
+fos.flush();//刷新
+fis.close();
+fos.close();
+```
+
+-------
+
+4.**FileReader与FileWriter实现Copy**
+
+>以字符方式只能复制文本文件
+
+```
+FileReader fr = new FileReader("D:/b.txt");
+FileWriter fw = new FileWriter("D:/c.txt");
+char[]chars = new char[512];//1kb
+int temp=0;//实际读取的字节数
+while((temp=fr.read(chars))!=-1){
+  fw.write(chars, 0, temp);
+}
+fw.flush();
+fr.close();
+fw.close();
+```
+
+-------
+
+5.**BufferedReader与BufferedWriter实现Copy**
+
+>API中写了 BufferedReader(Reader in)，所以以下代码用InputStreamReader将字节输入流转为字符输入流
+
+```
+BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("D:/b.txt")));
+BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("D:/b.txt")));
+String temp=null;
+while((temp=br.readLine())!=null){
+  bw.write(temp);
+  bw.newLine();
+}		
+bw.flush();
+br.close();
+bw.close();
+```
+
+-------
+
+6.**DataOutputStream与DataInputStream**
+
+>数据字节输出流 可以将内存中的 "int i = 10" 写入到硬盘文件中，写进去的不是字符串，而是二进制数据（带类型）
+>要使用数据字节输入流读取数据，必须提前知道文件中的存储格式和顺序,读的顺序必须和写入的顺序相同
+
+DataOutputStreamTest01.java
+```
+public class DataOutputStreamTest01 {
+	public static void main(String[] args) throws IOException {
+		DataOutputStream dos = new DataOutputStream(new FileOutputStream("D:/d"));
+		byte b = 10;
+		int i = 11;
+		dos.writeByte(b);
+		dos.writeInt(i);
+		dos.flush();
+		dos.close();
+	}
+}
+```
+
+DataInputStreamTest01.java
+```
+public class DataInputStreamTest01 {
+	public static void main(String[] args) throws IOException {
+		DataInputStream dis = new DataInputStream(new FileInputStream("D:/d"));
+		byte b = dis.readByte();
+		int i = dis.readInt();
+		System.out.println(b);
+		System.out.println(i);
+		dis.close();
+	}
+}
+```
+
+-------
+
+7.**PrintStream与PrintWriter**
+
+>PrintStream是标准的输出流，默认打印到控制台，以字节的形式
+
+```
+String msg = "nero";
+PrintStream ps = System.out;
+ps.println(msg);
+```
+
+-------
+
+8.**ObjectOutputStream与ObjectInputStream**
+
+>java.io.ObjectOutputStream  序列化内存中对象到硬盘(Serial)
+>java.io.ObjectInputStream   将硬盘中的数据 反序列化 到JVM内存(DeSerial)
+
+Object_User.java
+>此类实现了Serializable接口，该接口表示“可序列化的”，此接口内没有任何方法，是一个标识接口
+>标识的作用：会给该类添加一个属性   serialVersionUID(序列化版本号)
+```
+public class Object_User implements Serializable{
+  private static final long serialVersionUID = 1L;
+  /**
+	 * serialVersionUID为序列化版本号，起到标识作用，会隐式自动生成
+   * 当此类更新后，版本号会发生变化，JVM会认为是两个不同的类，导致序列化过程出错
+   * 为了避免此情况，一般显式声明serialVersionUID，提升兼容性
+	 */
+	transient String name;//如果不想让该属性参加序列化，需要使用transient关键字修饰
+	public Object_User(String name) {
+		this.name = name;
+	}
+	public String toString(){
+		return "User["+name+"]";
+	}
+}
+```
+
+ObjectOutputStreamTest01.java
+```
+public class ObjectOutputStreamTest01 {
+	public static void main(String[] args) throws IOException {
+		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("D:/e"));
+		Object_User user = new Object_User("Nero");
+		oos.writeObject(user);
+		oos.flush();
+		oos.close();
+	}
+}
+```
+
+ObjectInputStreamTest01.java
+```
+public class ObjectInputStreamTest01 {
+	public static void main(String[] args) throws Exception {
+		ObjectInputStream ois = new ObjectInputStream(new FileInputStream("D:/e"));
+		Object o = ois.readObject();
+		System.out.println(o.toString());
+		ois.close();
+	}
+}
+```
