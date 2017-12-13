@@ -131,11 +131,14 @@ ps.println(msg);
 8.**ObjectOutputStream与ObjectInputStream**
 
 >java.io.ObjectOutputStream  序列化内存中对象到硬盘(Serial)
+>
 >java.io.ObjectInputStream   将硬盘中的数据 反序列化 到JVM内存(DeSerial)
 
 Object_User.java
 >此类实现了Serializable接口，该接口表示“可序列化的”，此接口内没有任何方法，是一个标识接口
+>
 >标识的作用：会给该类添加一个属性   serialVersionUID(序列化版本号)
+
 ```
 public class Object_User implements Serializable{
   private static final long serialVersionUID = 1L;
