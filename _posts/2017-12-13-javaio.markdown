@@ -4,7 +4,7 @@ title:  Java学习小结(io流)
 date: 2017-12-13 20:12:24.000000000 +09:00
 ---
 
->毕设做socket通信时涉及到了io流，所以花了2天学习了一些io常用的代码，在此总结一下
+>毕设做socket通信时涉及到了io流，所以花了2天学习了一些io常用函数，在此总结一下
 
 1.**流(Stream)的概念**
 
@@ -135,9 +135,9 @@ ps.println(msg);
 >java.io.ObjectInputStream   将硬盘中的数据 反序列化 到JVM内存(DeSerial)
 
 Object_User.java
->此类实现了Serializable接口，该接口表示“可序列化的”，此接口内没有任何方法，是一个标识接口
->
->标识的作用：会给该类添加一个属性   serialVersionUID(序列化版本号)
+
+- 此类实现了Serializable接口，该接口表示“可序列化的”，此接口内没有任何方法，是一个标识接口
+- 标识的作用：会给该类添加一个属性   serialVersionUID(序列化版本号)
 
 ```
 public class Object_User implements Serializable{
