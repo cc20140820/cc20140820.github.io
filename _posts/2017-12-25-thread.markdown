@@ -65,7 +65,7 @@ class Processor1 implements Runnable{
 
 5.**UML图描述线程的生命周期**
 
-![JVM](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/umlthread.png)
+![JVM](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/umlthread.PNG)
 
 -------
 
