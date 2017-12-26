@@ -1,0 +1,236 @@
+---
+layout: post
+title:  Java学习小结(多线程Thread)
+date: 2017-12-25 17:12:24.000000000 +09:00
+---
+
+>毕设遇到些问题，猜想可能与多线程有关联，所以花了几天时间学习了多线程，在此小结一番
+
+1.**进程与多进程**
+
+- 一个进程对应一个应用程序。在java的开发环境下启动JVM，就表示启动了一个进程。在同一个操作系统中，可以启动多个进程
+
+- 对于单核计算机来讲，在同一个时间点上运行了游戏进程和音乐进程，但实际二者并不是同时运行
+而计算机的CPU在某个时间点上只能做一件事，所以计算机在 游戏进程 和 音乐进程 之间频繁的切换执行，由于切换速度极高，所以人类感觉两者在同时进行
+
+- 多进程的作用不是提高执行速度，而是提高CPU的使用率
+
+- 进程和进程之间的内存是独立的
+
+-------
+
+2.**线程与多线程**
+
+- 线程是一个进程中的执行场景。一个进程可以启动多个线程
+
+- 多线程作用不是为了提高执行速度，而是提高应用程序的使用率
+
+- 线程和线程共享“堆内存和方法区内存”，栈内存是独立的，一个线程一个栈
+
+- 由于多线程在来回切换，所以给现实世界中的人类一种错觉：感觉多个线程在同时并发执行。
+
+-------
+
+3.**关于Java程序的运行原理**
+
+java命令会启动JVM，等于启动了一个应用程序即进程，该进程会自动启动一个主线程，然后主线程去调用某个类的main方法，所以main方法运行在主线程中
+
+-------
+
+4.**在Java语言中实现多线程的两种方式**
+
+第一种：
+- 继承 java.lang.Thread
+- 重写 run 方法
+```
+class Processor extends Thread{
+	public void run(){
+    System.out.println("helloworld");
+	}
+}
+```
+
+第二种：
+- 实现 java.lang.Runnable
+- 实现 run 方法
+```
+class Processor1 implements Runnable{
+	public void run(){
+    System.out.println("helloworld");
+	}
+}
+```
+
+-------
+
+5.**UML图描述线程的生命周期**
+
+![JVM](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/umlthread.png)
+
+-------
+
+6.**线程的调度与控制**
+
+>CPU在某个时刻只能执行一条指令，线程只有得到CPU时间片，才能执行命令
+>JVM负责线程的调度，取得CPU的时间片。优先级高的线程获取的CPU时间片相对多一些
+
+ThreadTest01.java
+```
+Thread t1 = new Processor();//创建线程
+t1.setName("t1");//给线程起名
+t1.setPriority(5);//设置优先级(由低到高1~10)
+Thread t2 = new Processor();
+t2.setName("t1");
+t2.setPriority(10);
+
+t1.start();//告诉JVM再分配一个新的栈给t线程，run不需程序员手动调用
+t2.start();//系统线程启动后自动调用run方法
+```
+
+-------
+
+7.**线程阻塞(sleep)与终止(interrupt)**
+
+>Thread.sleep(ms)，是一个静态方法，阻塞当前线程，腾出CPU，让给其他线程
+
+ThreadTest02.java
+```
+//依靠异常处理机制，3s后打断线程的休眠
+public class ThreadTest02 {
+	public static void main(String[] args) throws InterruptedException {
+		Thread t=new Thread(new Processor4());
+		t.setName("t");
+		t.start();
+		Thread.sleep(3000);
+		t.interrupt();//打断t的休眠
+	}
+}
+
+class Processor4 implements Runnable{
+	@Override
+	public void run() {
+		try {Thread.sleep(100000);} catch (InterruptedException e) {}
+		for(int i=0;i<10;i++){
+			System.out.println(Thread.currentThread().getName()+"-->"+i);
+		}
+	}
+}
+
+```
+
+ThreadTest03.java
+```
+//需求：更好的终止一个正在执行的线程
+
+public class ThreadTest03 {
+	public static void main(String[] args) throws InterruptedException {
+		Processor5 p =new Processor5();
+		Thread t=new Thread(p);
+		t.setName("t5");
+		t.start();
+		Thread.sleep(5000);
+		p.run=false;//终止
+	}
+}
+
+class Processor5 implements Runnable{
+  boolean run = true;//利用Boolean来控制
+	@Override
+	public void run() {
+		for(int i=0;i<10;i++){
+			if(run){
+				try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
+				System.out.println(Thread.currentThread().getName()+"-->"+i);
+			}else{
+				return;//结束此方法
+			}
+		}
+	}
+}
+
+```
+
+-------
+
+8.**线程的同步（加锁）important！**
+
+>异步编程模型：t1线程执行t1的，t2线程执行t2的，两线程之间谁也不等谁
+>
+>同步编程模型：t1线程和t2线程执行，t1必须等t2线程执行结束后才能执行
+
+为什么要引入线程同步呢？
+
+- 为了数据的安全。尽管应用程序的使用率降低，但是为了保证数据是安全的，必须加入线程同步机制。(线程同步机制让程序等同于单线程)
+
+什么条件下要使用线程同步？
+
+- 必须是多线程环境
+- 多线程环境共享同一个数据
+- 共享的数据涉及到修改操作
+
+模拟银行取款场景(synchronized关键字也可直接添加到成员方法上)
+
+>原理：T1线程执行到此处遇到synchronized关键字，就会去找this的对象锁，找到则进入同步语句块执行程序，执行完再归还对象锁
+>在T1线程执行同步语句块的过程中，若T2线程执行到此处也遇到synchronized关键字，但未找到this的对象锁，只能等待T1归还
+>(synchronized添加到静态方法上，线程执行此方法时会找类锁)
+
+```
+public void withdraw(double money){
+	//把需要同步的代码放到同步语句块中
+	synchronized(this){
+		double after = balance - money;
+		//延迟
+		try{Thread.sleep(1000);}catch(InterruptedException e){}
+		//更新
+		this.setBalance(after);
+	}
+}
+```
+
+9.**死锁(DeadLock)**
+```
+public class DeadLock {
+	public static void main(String[] args) {
+		Object o1 = new Object();
+		Object o2 = new Object();
+		Thread t1 = new Thread(new T1(o1,o2));
+		Thread t2 = new Thread(new T2(o1,o2));
+		t1.start();
+		t2.start();
+	}
+}
+
+class T1 implements Runnable{
+	Object o1;
+	Object o2;
+
+	T1(Object o1,Object o2){
+		this.o1=o1;
+		this.o2=o2;
+	}
+
+	public void run() {
+		synchronized(o1){
+			try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
+			synchronized(o2){}
+		}
+	}
+}
+
+class T2 implements Runnable{
+	Object o1;
+	Object o2;
+
+	T2(Object o1,Object o2){
+		this.o1=o1;
+		this.o2=o2;
+	}
+
+	public void run() {
+		synchronized(o2){
+			try {Thread.sleep(1000);} catch (InterruptedException e) {e.printStackTrace();}
+			synchronized(o1){}
+		}
+	}
+}
+```
