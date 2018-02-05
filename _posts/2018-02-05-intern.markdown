@@ -1,0 +1,77 @@
+---
+layout: post
+title:  OilSoftware 实习经历
+date: 2018-02-05 15:22:24.000000000 +09:00
+---
+
+>今年的2.15开始了我在 OilSoftware 的实习，到今天已经有二十天了。之前手上的工作比较多，一直抽不出空总结一下心得。如今任务全部完成，终于又可以打开Atom写点有价值的东西了。
+
+1.**Git机制**
+
+基本名词：仓库(Repository)、分支(Branch)、工作流(workflow)
+
+- 仓库(Repository)
+
+仓库分为源仓库(origin)与开发者(developer)仓库,源仓库负责保存与汇总，开发者通过复制(fork)源仓库，生成开发者仓库。
+
+- 分支(Branch)
+
+Git有五种分支模型：主分支(master)、开发分支(develop)、功能分支(feature)、预发布分支(release)、Bug修复分支(hotfix)
+
+master:主分支从项目一开始便存在，用于存放经过测试，已完全稳定的代码。每次master更新的时候都应打上tag，说明产品有新版本发布了。
+
+develop:开发分支，一开始从master分离出来，用于存放开发者基本稳定的代码。开发者把功能做好以后，存放到自己的develop中，当测试完以后，可以
+向管理者发起pull request，请求把自己仓库中的develop分支合并到源仓库的develop中。
+
+feature:功能性分支，用于开发项目的功能的分支，是开发者主要战斗阵地。开发者在本地仓库从develop分支分出功能分支，在该分支上进行功能开发，
+开发完成以后再合并到develop分支上。完成任务后可删除。命名一般为feature-*
+
+release:预发布分支，当产品即将发布的时候，要进行最后的调整与测试，这时候就可以分出一个预发布分支，进行最后的Bug fix。完成任务后可删除。命名一般为release-*
+
+hotfix:修复Bug分支，当产品已经发布，突然出现重大Bug。这时候就要新建一个hotfix分支，继续紧急的Bug修复工作。完成任务后可删除。命名一般为hotfix-*
+
+- 工作流(Workflow)
+
+1) 源仓库的构建，创建一个项目，初始化了两个永久性分支master和develop.
+
+2) 开发者fork源仓库
+
+3) 把自己开发者仓库clone到本地
+
+4) 构建功能分支进行开发，完成后合并到自己的develop分支
+
+5) 向管理员提交pull request(请求管理员把自己仓库的develop分支合并到源仓库的develop分支中)
+
+6) 管理员测试、合并
+
+![JAVA](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/git.jpg)
+
+-------
+
+2.**SSM框架**
+
+>Maven：项目构建工具，自动导入你需要的jar包
+
+- 首先使用idea新建一个Maven webapp项目
+
+- 搭建目录结构
+
+![JAVA](https://raw.githubusercontent.com/cc20140820/cc20140820.github.io/master/assets/images/ssm.png)
+
+- 配置文件内容
+
+pom.xml(设定spring、mybatis版本号之类，通过Maven增添依赖)
+
+jdbc.properties(数据库地址、用户名、密码等配置)
+
+spring-mybatis.xml(配置与数据库的连接)
+
+web.xml(设定首页之类)
+
+......
+
+-------
+
+3.**Mysql查询语句**
+
+>因为项目是SSM框架，所以很方便效仿其他功能的代码，最大的不同就在于底层的 SQL语句
