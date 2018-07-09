@@ -105,6 +105,7 @@ int i6=i5;//自动拆箱
 4.**日期类**
 
 - Date类
+
 ```
 Date d1=new Date();
 SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -121,6 +122,7 @@ try {
 ```
 
 - Calendar类
+
 ```
 Calendar calendar = Calendar.getInstance();
 int i = calendar.get(Calendar.DAY_OF_WEEK);
@@ -128,6 +130,7 @@ int i = calendar.get(Calendar.DAY_OF_WEEK);
 -------
 
 5.**枚举**
+
 ```
 public static Result divide(int a, int b){
     try {
@@ -147,6 +150,7 @@ enum Result{
 -------
 
 6.**Random**
+
 ```
 //生成5个不同的随机数【1-5】
 public class RandomTest {
