@@ -1,0 +1,98 @@
+---
+layout: post
+title:  工作笔记(JavaScript)
+date: 2018-08-29 13:31:24.000000000 +09:00
+---
+
+>前几周工作状态不太好，这几天终于恢复过来了，在此把之前工作中有点价值的东西记录下来，IT路漫漫，加油加油！！！
+
+1.**懒加载**
+
+- 核心思想：只加载可视部分元素
+
+- 实现方式：计算滚动条与页面底部的距离
+
+-------
+
+2.**prop与attr的区别(JQuery)**
+
+- 对于HTML元素天生的固有属性，在处理时，使用prop方法
+
+- 对于HTML元素自定义的DOM属性，在处理时，使用attr方法
+
+-------
+
+3.**Zepto与JQuery**
+
+- Zepto是为移动端开发的库，是JQuery的轻量级替代品。
+
+-------
+
+4.**点击按钮自动刷新页面问题**
+
+- 问题描述：点击```<button>```标签，页面进行了刷新
+
+- 发生原因：在W3C浏览器，如Firefox下，```<button>```标签按钮会提交表单
+
+- 解决方案：```<input type="button"/>```不会对表单进行任何操作
+
+5.**Android与Javascript交互**
+
+- Android调用JavaScript
+
+JavaScript写好一个function让Android调用即可
+
+示例代码：
+
+```
+//sTime,eTime分别为原生传来的起始时间与截止时间
+function selectDate(sTime,eTime) {
+    startTime=sTime;
+    endTime=eTime;
+    Index_Ajax();
+}
+```
+
+- JavaScript调用Android
+
+1.Android配置完毕后，JavaScript可直接通过对象.方法名进行调用
+
+2.或通过请求约定的url，进而让Android捕获，间接调用
+
+示例代码：
+
+```
+// 由于对象映射，所以调用test对象等于调用Android映射的对象
+function callAndroid(){
+    test.hello("js调用了android中的hello方法");
+}
+
+// 约定的url协议为：js://webview?arg1=1&arg2=2
+function callAndroid(){
+    document.location = "js://webview?arg1=1&arg2=2";
+}
+```
+
+6.**面试题**
+
+以下代码运行结果是？
+
+```
+<html>
+<body>
+<button id="button1">Button1</button>
+<button id="button2">Button2</button>
+<button id="button3">Button3</button>
+<script>
+function buttonInit(){
+    for(var i=1;i<4;i++){
+        var b=document.getElementById("button"+i);
+        b.addEventListener("click",function(){ alert("Button"+i);},false);
+    }
+}
+window.onload=buttonInit;
+</script>
+</body>
+</html>
+```
+-------
