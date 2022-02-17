@@ -1,0 +1,260 @@
+---
+title: 一些零碎的工作笔记
+date: 2018-11-21
+categories: note
+---
+
+> 距离上次已经有两个月时间，一直比较忙，工作过程中也发现了很多问题，在此归纳一下。
+
+1.**获取 URL 参数转存为数组**
+
+```javascript
+function GetRequest() {
+  var url = location.search //获取url中"?"符后的字串
+  url = decodeURI(url) //对uri进行解码
+  var request = new Object()
+  if (url.indexOf("?") != -1) {
+    var str = url.substr(1) //将问号截去
+    var strs = str.split("&") //以&作为分隔符,拆分为数组,例:["name=mike","age=1"]
+    for (var i = 0; i < strs.length; i++) {
+      var temp_arr = strs[i].split("=") //以=作为分隔符,拆分为数组,例:["name","mike"]
+      request[temp[0]] = temp[1] //生成新数组 例:request["name"]="mike"
+    }
+  }
+  return request
+}
+```
+
+---
+
+2.**将时间转化为 yyyy-MM-dd 格式**
+
+```javascript
+var date = new Date("2008-8-8")
+console.log(timetrans(date)) //2008-08-08
+
+function timetrans(date) {
+  var Y = date.getFullYear() + "-"
+  var M =
+    (date.getMonth() + 1 < 10
+      ? "0" + (date.getMonth() + 1)
+      : date.getMonth() + 1) + "-"
+  var D = (date.getDate() < 10 ? "0" + date.getDate() : date.getDate()) + " "
+  return Y + M + D
+}
+```
+
+---
+
+3.**radio、checkbox、select 事件监听与取值方法(jquery)**
+
+```javascript
+//radio 初始化/监听事件/取值
+$('input:radio[name=""][value=""]').prop("checked", true)
+
+$('input:radio[name=""]').on("click", function () {
+  console.log($(this).val())
+})
+var value = $('input:radio[name=""]:checked').val()
+
+//checkbox监听事件与取值
+$('input:checkbox[name=""]').on("click", function () {
+  console.log($(this).prop("checked"))
+})
+
+//select监听事件与取值
+$("select").on("change", function () {
+  alert($(this).children("option:selected").val())
+})
+```
+
+4.**文字多余部分省略号显示**
+
+- 常规写法
+
+```css
+.style {
+  width: 150px; /*要显示文字的宽度*/
+  overflow: hidden; /*超出的部分隐藏起来。*/
+  white-space: nowrap; /*不显示的地方用省略号...代替*/
+  text-overflow: ellipsis; /* 支持 IE */
+}
+```
+
+- 改版：第 n 行多余部分显示省略号
+
+```css
+.style {
+  width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; //第n行
+  -webkit-box-orient: vertical;
+}
+```
+
+5.**css3 绝对居中**
+
+- 前提:父元素 position:relative，有宽高
+
+```css
+.son {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+```
+
+6.**bfcache 清除往返缓存**
+
+- 最佳方案(用定时器的形式请求数据)
+
+```javascript
+setTimeout(() => {
+  this.getHomeData()
+}, 100)
+```
+
+7.**黑色遮罩**
+
+- z 轴由上到下排列顺序：弹窗>遮罩>内容
+
+```css
+.style {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+```
+
+8.**移动端分页**
+
+```javascript
+var current_page = 1; //当前页面
+var page_size = 20; //每页的数据量
+var noMoreData = false; //有无更多数据
+var canLoad = false; //可否加载
+
+$(function () {
+    loadData(); //首次加载数据
+    initListener(); //监听滚动加载
+});
+
+function loadData() {
+    var params = {
+        page:current_page,
+        page_size:page_size,
+    };
+    $.ajax({
+        type: "POST",
+        url: BASE_URL
+        data: params,
+        dataType: "json",
+        success:function(result){
+            if (result.return_code == 1) {
+                var html='';
+                for(var i=0;i<result.return_data.length;i++){
+                    html+=''
+                }
+                $("#container").append(html);
+                noMoreData = result.return_data.length < page_size;
+                if(noMoreData==true){
+                    canLoad = false;
+                    var over_html='<p>已全部加载</p>';
+                    $("#container").append(over_html);
+                }else {
+                    current_page++;
+                    canLoad = true;
+                }
+            }else if(result.return_code == 0){
+                noMoreData = true;
+            }
+        }
+    })
+}
+
+function initListener() {
+    var winH = $(window).height();
+    $(window).scroll(function () {
+        var pageH = $(document.body).height();
+        var scrollT = $(window).scrollTop();
+        var scale = (pageH-winH-scrollT)/winH;
+        if (scale < 0.02 && canLoad == true) {
+            if (noMoreData == false) {
+                canLoad=false;
+                loadData();
+            }
+        }
+    });
+}
+```
+
+9.**点击除指定元素外的区域**
+
+```javascript
+$(document).on("click", ":not(.className)", function () {
+  alert(1)
+})
+$(".className").on("click", function (e) {
+  e.stopPropagation()
+})
+```
+
+10.**CSS3 动画**
+
+```css
+@keyframes mymove {
+  0% {
+    top: 0px;
+    left: 0px;
+    background: red;
+  }
+  25% {
+    top: 0px;
+    left: 100px;
+    background: blue;
+  }
+  50% {
+    top: 100px;
+    left: 100px;
+    background: yellow;
+  }
+  75% {
+    top: 100px;
+    left: 0px;
+    background: green;
+  }
+  100% {
+    top: 0px;
+    left: 0px;
+    background: red;
+  }
+}
+
+div {
+  animation: mymove 5s infinite;
+  -webkit-animation: mymove 5s infinite; /* Safari 和 Chrome */
+}
+```
+
+11.**零碎的发现**
+
+- 字符串转数字 parseInt(String s) parseFloat(String s)【实现跑马灯效果时发现，监听的偏移量为浮点型，却用整型捕捉，导致 bug】
+
+- font-size:10px 不代表这个文本高度为 10px，实际高度大于 10px，可通过设置 line-height 达到预期效果【定位文字初始位置时发现】
+
+- bfcache 为 H5 新特性，代表往返缓存 【微信页面中后退，发现页面并没有更新，使用定时器思路解决】
+
+- 直接读取缓存数据：history.go(0) ； 重连服务器以读得新的页面：location.reload() 【对页面刷新方法对疑问】
+
+- 苹果手机 click 事件无效 解决方案：touchstart(坏处：会穿透) 或 cursor:pointer(简直完美) 【实现微信软键盘隐藏过程中发现】
+
+- 当过渡效果的属性有多个时，使用 transition:all 【为首页增添多种动态效果时发现】
+
+- 为避免重复加载，可在 ajax 中通过 beforeSend 与 complete 事件，来添加/关闭遮罩。【点击按钮出现多次请求的 bug】

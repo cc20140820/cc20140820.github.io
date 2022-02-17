@@ -1,0 +1,316 @@
+---
+title: RN初步尝试
+date: 2018-09-20
+categories: note
+tags: rn
+---
+
+> 这一个月内都在搞 RN，体会良多，在此总结一下
+
+1.**环境搭建**
+
+- 运行环境:Node8.3 / Python2.x / Jdk1.8 / Android8.0-Sdk
+
+- npm 设置:
+
+```
+npm install -g yarn react-native-cli
+npm config set registry https://registry.npm.taobao.org --global
+npm config set disturl https://npm.taobao.org/dist --global
+```
+
+- 初试化项目:
+
+```
+react-native init ProjectName
+```
+
+- 运行项目:
+
+```
+cd ProjectName
+react-native run-android
+```
+
+---
+
+2.**导航器**
+
+- 导航库:react-navigation
+
+- 使用方法:
+
+```
+npm install --save react-navigation
+react-native link react-navigation
+```
+
+- 项目实践:
+
+App.js:负责注册各个子页面、设置首页
+
+```
+import React from 'react';
+import { createStackNavigator } from 'react-navigation';
+import Login from './ui/Login';
+import Index from './ui/Index';
+
+const RootStack = createStackNavigator(
+    {
+        Login: Login,
+        Index: Index,
+    },
+    {
+        initialRouteName: 'Login',
+    }
+);
+
+export default class App extends React.Component {
+    render() {
+        return <RootStack />;
+    }
+}
+```
+
+隐藏头部导航栏：
+
+```
+static navigationOptions = {
+    header: null,
+};
+```
+
+自定义导航栏：
+
+```
+static navigationOptions = {
+        title:'导航栏标题',
+        headerStyle: {
+            backgroundColor: '#383a4a',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+            flex:1,
+            color:'#ffffff',
+            textAlign: 'center'
+        },
+        headerRight: (<View/>),
+    };
+```
+
+跳转页面、传递数据、接收数据：
+
+```
+this.props.navigation.navigate('Index',{
+    person_name: 'Nero',
+});
+this.props.navigation.getParam('person_name')
+```
+
+---
+
+3.**数据请求**
+
+- 我封装的方法:
+
+```
+fetchJson(url, data, callback){
+    var options = {
+        method: 'POST',
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+        body:data
+    };
+
+    fetch(url, options)
+        .then((response) => response.json())
+        .then((responseText) => {
+             callback(JSON.parse(responseText));
+        }).done();
+}
+```
+
+---
+
+4.**数据展示**
+
+- 可用组件: Flatlist / SectionList
+
+- 项目实践:
+
+Info.js:列表页展示、下拉刷新、上拉加载
+
+```
+export default class Details extends Component {
+    _keyExtractor=(item)=>item.id;
+
+    constructor(props){
+        super(props);
+        this.page=1;
+        this.pageSize=20;
+        this.state={
+            dataList:[],
+            isRefresh:false,
+        };
+    }
+
+    componentDidMount() {
+        this.achievePageData();
+    }
+
+    achievePageData(){
+        let formData = new FormData();
+        formData.append("id",1);
+        fetchJson(REQUEST_URL,formData,(result) => {
+            if(result.return_code==1){
+                if(this.page===1){
+                    this.setState({
+                        dataList:result.return_data.pageList,
+                    })
+                }else{
+                    this.setState({
+                        dataList: this.state.dataList.concat(result.return_data.pageList)
+                    })
+                }
+            }
+        })
+    }
+
+    _onRefresh=()=>{
+        if(!this.state.isRefresh){
+            this.page = 1;
+            this.achievePageData();
+        }
+    };
+
+    _onLoadMore(){
+        if (this.state.dataList.length%this.pageSize==0){
+            this.page = this.page + 1;
+            this.achievePageData()
+        }
+    }
+
+    render() {
+        return (
+            <View style={styles.container}>
+                    <FlatList
+                        onRefresh={() => this._onRefresh()}
+                        refreshing={this.state.isRefresh}
+                        onEndReached={() => this._onLoadMore()}
+                        onEndReachedThreshold={0.1}
+                        keyExtractor={this._keyExtractor}
+                        data={this.state.dataList}
+                        renderItem={({item}) =>
+                            <TouchableOpacity onPress={()=>{}}>
+                                <Text>{item.name}</Text>
+                            </TouchableOpacity>
+                        }
+                    />
+            </View>
+        );
+    }
+}
+```
+
+---
+
+4.**扫描功能**
+
+- 扫描库: react-native-camera
+- 使用方法:
+
+```
+npm install --save react-native-camera
+react-native link react-native-camera
+```
+
+- 项目实践:
+
+Camera.js:扫一扫功能
+
+```
+import React, {Component} from 'react';
+import {Animated,Easing,ToastAndroid,Dimensions} from 'react-native';
+import { RNCamera } from 'react-native-camera';
+
+const REQUEST_URL="";
+const {width, height}  = Dimensions.get('window');
+
+export default class Camera extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            moveAnim: new Animated.Value(-120),
+        };
+    }
+
+    componentDidMount() {
+        this.startAnimation();
+    }
+
+    startAnimation = () => {
+        this.state.moveAnim.setValue(-120);
+        Animated.timing(
+            this.state.moveAnim,
+            {
+                toValue: 120,
+                duration: 2500,
+                easing: Easing.linear
+            }
+        ).start(() => this.startAnimation());
+    };
+    //  识别二维码
+    onBarCodeRead = (e) => {
+        ToastAndroid.show(e.data,ToastAndroid.SHORT);
+    };
+
+    render(){
+        return (
+            <View style={styles.container}>
+                <RNCamera
+                    ref={ref => {
+                        this.camera = ref;
+                    }}
+                    type={RNCamera.Constants.Type.back}
+                    flashMode={RNCamera.Constants.FlashMode.on}
+                    onBarCodeRead={this.onBarCodeRead.bind(this)}
+                >
+                    <View style={styles.curtain_top}/>
+                    <View style={styles.curtain_mid}>
+                        <View style={styles.mid_shadow}/>
+                        <View style={styles.rectangleContainer}>
+                            <Animated.Image
+                                source={require('../images/scan_light.png')}
+                                style={[styles.border,
+                                    {transform: [{translateY: this.state.moveAnim}]}]}/>
+                            <View style={styles.leftTop}>
+                                <View style={{ height: 6, width: 20, backgroundColor: '#00d5fc' }} />
+                                <View style={{ height: 14, width: 6, backgroundColor: '#00d5fc' }} />
+                            </View>
+                            <View style={styles.leftBottom}>
+                                <View style={{ height: 6, width: 20, backgroundColor: '#00d5fc' }} />
+                                <View style={{ height: 14, width: 6, backgroundColor: '#00d5fc' }} />
+                            </View>
+                            <View style={styles.rightTop}>
+                                <View style={{ height: 6, width: 20, backgroundColor: '#00d5fc' }} />
+                                <View style={{ height: 14, width: 6, backgroundColor: '#00d5fc' }} />
+                            </View>
+                            <View style={styles.rightBottom}>
+                                <View style={{ height: 6, width: 20, backgroundColor: '#00d5fc' }} />
+                                <View style={{ height: 14, width: 6, backgroundColor: '#00d5fc' }} />
+                            </View>
+                        </View>
+                        <View style={styles.mid_shadow}/>
+                    </View>
+                    <View style={styles.curtain_bottom}/>
+                </RNCamera>
+            </View>
+        );
+    }
+}
+```
+
+---
