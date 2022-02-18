@@ -13,3 +13,9 @@ NexT 是由 [Hexo NexT](https://github.com/iissnan/hexo-theme-next) 移植而来
 ## 浏览器支持 Browser support
 
 ![Browser support](http://iissnan.com/nexus/next/browser-support.png)
+
+## 启动本地环境
+
+```shell
+bundle exec jekyll serve --watch
+```
