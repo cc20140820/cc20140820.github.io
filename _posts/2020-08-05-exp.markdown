@@ -1,0 +1,413 @@
+---
+title: 这一年的React经历
+date: 2020-08-05
+categories: note
+---
+
+_算算时间，从第一次接触 react 项目到现在已经一年时间，期间一直想写点 react 的开发心得与经验，但是由于各种原因搁置了(其实就是懒 hhh)，这一年也接触了一些项目，现在按照时间线浅谈一下项目经历，也为之后计划写的 React 笔记理理思路_
+
+---
+
+> Panshi Mail 邮箱系统
+
+这个项目是和学长们一起利用业余时间共同完成的，由于大伙在不同的城市，所以都是线上沟通对需求，交付的那天还一起熬了夜，学长们教会了我很多，现在想起那还是很愉快的一段时光 😄。
+言归正传，该项目是仿照 Gmail 设计，供公司内网使用的邮箱系统，我负责后台管理模块的开发，当时使用的 Ant Pro 框架，对于我这种没有搭过架子的人来说，Ant Pro 真的是帮了大忙，整合了全局路由/数据请求/状态管理等一系列实用的功能。记得在项目正式开始前，我花了一周时间仔细看了 react/antd/dva/umi 的文档，react 那个官方井字棋也反反复复写了两遍，Antd 的组件也全部熟悉了一遍，不得不说，Antd 的 UI 真的很漂亮，只是觉得 Form 组件用起来有点复杂，一旦加些复杂的交互，就会遇到各种问题。当时对于 dva 和 umi 其实也是一知半解，但是已经来不及解释，项目就这样开始了。
+项目的开发大概花了 1 ～ 2 个月，由于我负责的模块比较简单，详细过程就不一一赘述了，在这里就挑几个印象深刻的问题简单讲讲。
+
+**1.react 的样式冲突**
+当两个样式文件中起了相同的类名就会引起样式冲突，可以使用顶级类名或者 `css in js` 来解决。
+
+**2.实现鉴权功能**
+为了实现 token 过期就跳转登录页的功能，改写了框架里的 request.js 请求函数，在 fetch 方法后面添加了 then 回调，通过判断 response 中的 code 来跳转登录并且清除缓存。
+
+**3.短信验证码组件**
+因为这个项目多处用到了验证码，所以写成了组件。虽然就几行，但是为了良好的交互体验还是花了些时间完成的，主要代码如下：
+
+```js
+onGetCaptcha = () => {
+    dispatch({})···//此处省略了请求部分
+    let count = 59;
+    this.setState({ count });
+    this.interval = setInterval(() => {
+      count -= 1;
+      this.setState({ count });
+      if (count === 0) {
+        clearInterval(this.interval);
+      }
+    }, 1000);
+};
+<Button disabled={count} onClick={this.onGetCaptcha}>{count? `${count} s`: '发送验证码'}</Button>
+```
+
+---
+
+> 数据可视化云屏
+
+由于部门主要研发的是面向政府、国企的党建系统。上岗后接触的第一个项目就是数据可视化的云屏系统，说的简单点就是用`Echarts`之类的图表或轮播图把后端返回的数据很花哨的渲染到整个屏幕，技术栈为`react+antd+dva+umi`。
+
+当时这个项目的二期刚启动，我的任务是实现大屏的编辑功能，有些需要提前说明一下：大屏的模块虽然各式各样，但是接口返回的数据格式被限定成了三种(基础信息/图表/图文)，所以大方向就是针对这三种数据格式写三种编辑组件。下面围绕图文类编辑组件讲讲自己在开发过程中的收获。
+
+![云屏图文类编辑组件](https://segmentfault.com/img/bVbKsHm)
+
+上图就是云屏的样子，弹窗就是图文类编辑组件。
+
+需求确定后，首先决定用 Antd 的 Modal 实现弹窗，其次就要考虑组件需要有哪些 props，在多次尝试后最后得出如下几个属性：
+
+```js
+interface IProps{
+    initialVal?, // 初始值
+    moduleId: string, // 模块id
+    visible: boolean, // 是否可见
+    isShowIcon?:boolean, //是否显示图标选择
+    onClose: (append?) => void, //关闭弹窗回调
+}
+```
+
+组件调用时如下：
+
+```jsx
+<ImageDialog
+  moduleId="5_1"
+  isShowIcon
+  initialVal={this.state.data_5_1}
+  visible={this.state.isShowDialog5_1}
+  onClose={this.handleCloseDialog5_1}
+/>
+```
+
+```js
+handleCloseDialog5_1 = (data) => {
+  const { isShowDialog5_1 } = this.state
+  if (isShowDialog5_1 && data) {
+    this.setState({
+      data_5_1: data,
+    })
+  }
+  this.setState({
+    isShowDialog5_1: !isShowDialog5_1,
+  })
+}
+```
+
+当时思考的方向就是属性之间不要有功能的重叠，避免多余无用的属性，再结合云屏的编辑功能的使用场景如下：
+
+- 页面首次渲染的时候会逐一调用每个模块的详情接口，所以点击各个模块进行编辑的时候，需要把数据传递给编辑组件，避免再次请求。
+
+- 进行编辑操作时，需要给出反馈来提升交互体验，可以给 Modal 中的 Spin、Button 等组件添加 loading 状态，同时添加上 message 提示。
+
+- 当完成对模块对编辑操作后，更新的数据要体现在页面上，所以在 Modal 的关闭回调中，要更新页面的状态，同时也需要重置组件内部状态。
+
+按照如上思路完成了三种编辑组件，虽然之后又添加了几种数据格式的编辑组件，不过都大同小异。由于这个项目的重点还是在页面的展示效果上，所以也没遇到其他 react 相关问题，不过在经历完这个项目后，倒是对 Echarts/Bizcharts 的使用更加熟练了，在格式化数据的过程中也掌握了数组的常用函数，比如可以使用 slice 很简洁的实现如下需求：**_需求是轮播图每页需要展示三条数据，接口会返回一个包含所有数据的一维数组（就叫它 arr），前端需要把 arr 处理成每三个为一组。_**
+
+```js
+const res = []
+for (let i = 0; i < arr.length; i += 3) {
+  res.push(arr.slice(i, i + 3))
+}
+```
+
+---
+
+> Particle Martin CMS
+
+云屏项目完成没多久，就被安排去杭州驻地开发了 🥱。杭州那个项目比较乱，就不写了。不过在业余时间投入到了名叫 Particle Martin 的项目中，这是我和一位学长共同完成的项目，技术栈`react+antd+axios`，是一个逻辑比较复杂的 CMS，当学长进入字节后就剩我一人维护了，里面很多功能的实现方式都很棒，下面慢慢梳理梳理。
+
+**1.请求方法的封装**
+利用`axios.create()`封装了请求实例，一并处理了文件下载、权限验证和错误提示。尤其是文件下载的判断逻辑让业务层少写了很多代码。请求实例的部分细节和调用方法如下：
+
+```js
+import axios from 'axios'
+import fileDownload from 'js-file-download'
+import { baseURL } from '../constants/apiConfig'
+
+//创建一个带基础配置的实例
+const instance = axios.create({
+  baseURL,
+  withCredentials: true,
+})
+
+instance.interceptors.response.use(res => {
+  let data = res.data
+  const headers = res.headers
+  /**
+   * 文件下载的逻辑 判断条件 response headers
+   * Content-Disposition: attachment;filename="export.xlsx"
+   * Content-Type: application/vnd.ms-excel
+   */
+  const contentType = headers['content-type']
+  const contentDisposition = headers['content-disposition']
+
+  const objRegex = /filename="([^"]+)"/.exec(contentDisposition)
+
+  if (objRegex && objRegex[1] && (contentType === 'application/vnd.ms-excel') {
+    const filename = objRegex[1]
+    const blob = new Blob([data], { type: contentType })
+    fileDownload(blob, filename)
+    return null
+  }
+  return data || ''
+}, error => { ... })
+
+export default instance
+
+```
+
+**2.EditorInput 组件**
+
+使用场景：当编辑接口可以面向单个字段，并且在编辑时不影响页面视图其他部分。
+组件说明： 1.基于 AntD Input 的受控组件 2.有显示和编辑两个状态，通过点击事件切换 3.编辑完成点击提交请求 API，更改成功则更新内容。
+
+组件交互如下：
+![image](https://segmentfault.com/img/remote/1460000023512128)
+
+实现过程中的难点主要在于点击事件，首先需要用`React.createRef()`获取到 DOM，然后通过`DOM.contains(e.target)`判断当前组件的状态及更改状态的触发条件，组件代码如下：
+
+```js
+import React from "react"
+import classNames from "classnames"
+import { Input, message, Button } from "antd"
+import "./index.scss"
+
+/**
+ * 在原有 Input 组件基础上增加的相关 props
+ * onSubmit // 提交回调
+ * required
+ * placeholderClassName
+ * placeholderStyle
+ * wrapperClassName
+ * wrapperStyle
+ */
+class EditorInput extends React.Component {
+  state = {
+    isEditing: false,
+    value: this.props.value || this.props.defaultValue || "",
+  }
+
+  containerRef = React.createRef()
+  placeholderRef = React.createRef()
+
+  componentDidMount() {
+    document.body.addEventListener("click", this.handleOtherDOMClick, {
+      capture: false,
+      passive: true,
+    })
+  }
+
+  componentDidUpdate(preProps) {
+    if (preProps.value !== this.props.value) {
+      this.setState({
+        isEditing: false,
+        value: this.props.value,
+      })
+    }
+  }
+
+  componentWillUnmount() {
+    document.body.addEventListener("click", this.handleOtherDOMClick, {
+      capture: false,
+      passive: true,
+    })
+  }
+
+  handleOtherDOMClick = (e) => {
+    const containerDOM = this.containerRef.current
+    const placeholderDOM = this.placeholderRef.current
+    const { isEditing } = this.state
+    const { loading } = this.props
+
+    if (placeholderDOM) {
+      if (placeholderDOM.contains(e.target) && !isEditing && !loading) {
+        // 进入编辑
+        this.setState({
+          isEditing: true,
+        })
+      }
+    }
+
+    if (containerDOM) {
+      if (
+        !containerDOM.contains(e.target) &&
+        isEditing &&
+        this.props.autoClose
+      ) {
+        // 点击外侧不提交修改 直接还原修改
+        this.handleCloseEdit()
+      }
+    }
+  }
+
+  handleCloseEdit = () => {
+    const { value } = this.props
+    this.setState({
+      value,
+      isEditing: false,
+    })
+  }
+
+  handleValueChange = (e) => {
+    const value = e.target.value
+    this.setState({
+      value,
+    })
+    this.props.onChange && this.props.onChange(e)
+  }
+
+  // 真实的提交数据回调
+  handleSubmitValue = (e) => {
+    const { onSubmit, required, onPressEnter } = this.props
+    const { value } = this.state
+
+    if (onPressEnter) {
+      onPressEnter(e)
+    }
+
+    if (required && value.trim().length === 0) {
+      message.error("you must input something")
+    } else {
+      onSubmit(value)
+      this.setState({
+        isEditing: false,
+      })
+    }
+  }
+
+  render() {
+    const { isEditing, value } = this.state
+    const {
+      size = "default",
+      containerClassName = "",
+      containerStyle = {},
+      placeholderClassName = "",
+      placeholderStyle = {},
+      loading,
+      autoClose,
+      ...others
+    } = this.props
+
+    const mappingPlaceholderHeight = {
+      large: "40px",
+      default: "32px",
+      small: "24px",
+    }
+
+    const placeholderHeight = mappingPlaceholderHeight[size]
+
+    return (
+      <div
+        className={classNames("editor-input-container", {
+          [containerClassName]: true,
+        })}
+        style={containerStyle}
+        ref={this.containerRef}
+      >
+        {isEditing ? (
+          <div className="editor-input-wrapper" key={1}>
+            <Button
+              shape="circle"
+              icon="close"
+              size="small"
+              className="editor-icon-button"
+              onClick={this.handleCloseEdit}
+            />
+            <Button
+              shape="circle"
+              icon="check"
+              type="primary"
+              size="small"
+              className="editor-icon-button"
+              onClick={this.handleSubmitValue}
+            />
+            <Input
+              {...others}
+              className="editor-input-element"
+              value={value}
+              size={size}
+              onChange={this.handleValueChange}
+              onPressEnter={this.handleSubmitValue}
+              disabled={loading}
+            />
+          </div>
+        ) : (
+          <div
+            key={2}
+            className={classNames(
+              "ant-input editor-value-placeholder-wrapper",
+              {
+                [placeholderClassName]: !!placeholderClassName,
+              }
+            )}
+            style={{
+              minHeight: placeholderHeight,
+              ...placeholderStyle,
+            }}
+          >
+            <span
+              ref={this.placeholderRef}
+              className={classNames(
+                "editor-value-placeholder",
+                !value && "no-value"
+              )}
+            >
+              {value || "Empty"}
+            </span>
+          </div>
+        )}
+      </div>
+    )
+  }
+}
+
+export default EditorInput
+```
+
+3.拖拽排序功能
+列表中的排序是通过拖拽实现的，选择了`react-dnd`组件，完成后的交互如下：
+![image](https://segmentfault.com/img/remote/1460000023512129)
+
+个人感觉，这个排序功能的交互体验非常好！这也是我第一次接触`react-dnd`这类的拖拽组件，感觉还可以利用拖拽实现删除功能，比如在窗口右下角固定一张垃圾箱的`Img`， 然后将某条记录的 Dom 拖入垃圾箱来触发 Delete API，日后有机会写个 Demo for fun。
+
+4.在表格底部展示每列的总计
+当时的需求是在`Table`下方展示出一行 Footer 作为每一列的总计，但是 Antd 的 Footer 属性返回的是一个 Dom,不支持每列对应的场景,如图：
+![WechatIMG1.png](https://segmentfault.com/img/bVbKOAX)
+
+但是实现起来遇到如下难点： 1.`Table`不分页，但是可以横纵方向滚动。 2.表格列是动态的。
+
+本来想法是在 Footer 中写 N 个 div(N 代表列数)，然后再固定好每列的宽度来做到对齐。但是后来发现固定的宽度只能是百分比(不然显示会出现问题)，而表格列是动态的，则需要每次都动态计算每个 div 的宽度，再想想出现 x 轴滚动条的场景后，我立马 pass 了这个解决方案。。
+最后借鉴了[这篇文章](http://www.geekjc.com/post/5cc4ff3425064b56aaab6943)，终于豁然开朗。
+最终的解决方案：用两个`Table`来实现，一个渲染原`Table`, 一个渲染底部`footer`元素。再配合样式覆盖，隐藏掉`Table Footer`的`thead`以及原`Table`滚动区域的滚动条。最后再加入让两个 table 的水平滚动位置对齐的 js 就完事了。
+
+---
+
+> 鲸小云
+
+这是公司内部使用的系统，目前还在迭代。启动这个项目的时候，Antd4.0 刚发布不久，所以愉快地将 antd 升级到了 4.0，并采用流行的`react hook`进行开发。开心的是，深深的感受到 4.0 的更好用了 👍，`react hook`写法上也比`class`更简单明了，似乎都在向好的方向发展～，再一次感受到一线开发人员的伟大，尤其是不分国界的开源精神。
+
+分享一个项目中的 SearchBar 组件，该组件比较简单，主要目的是为了 Team 能够统一搜索区域的页面样式，只需要专注于业务开发：
+调用方式如下：
+
+```js
+<SearchBar
+  queryItems={[
+    <FormItem {...layout} label="名称" name="name">
+      <Input />
+    </FormItem>,
+  ]}
+  optionBtns={[
+    <Button icon={<PlusOutlined />} onClick={addNewAgent}>
+      新建
+    </Button>,
+    <Button
+      type="primary"
+      icon={<VerticalAlignBottomOutlined />}
+      onClick={doExport}
+    >
+      导出
+    </Button>,
+  ]}
+  onFinish={search}
+/>
+```
+
+---
+
+_陆陆续续终于写完了，回顾这一年经历的项目，技术栈多为`react+antd`，再到后来的`hook`，我也算是踏进了 react 的大门啦。_
