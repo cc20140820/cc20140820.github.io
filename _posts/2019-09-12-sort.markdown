@@ -1,0 +1,106 @@
+---
+title: 拖放排序
+date: 2019-09-12
+categories: note
+---
+
+> 今天偶然看到 HTML5 的拖拽新特性，比较感兴趣，通过一个简单的 demo 学习学习。
+
+不废话，先看看最终实现的样子：
+
+我称之为《*鬼灭之圣诞之拖拽排序*🎄》:)
+![IMG_4701.GIF](https://segmentfault.com/img/bVcMdQI)
+
+用鬼灭的图做了个九宫格，可拖放任意一张调整九张图的顺序。
+
+实现过程, 首先把页面结构和样式写好：
+
+```html
+<div id="container">
+  <img draggable="true" src="./img/1.jpg" />
+  <img draggable="true" src="./img/2.jpg" />
+  <img draggable="true" src="./img/3.jpg" />
+  <img draggable="true" src="./img/4.jpg" />
+  <img draggable="true" src="./img/5.jpg" />
+  <img draggable="true" src="./img/6.jpg" />
+  <img draggable="true" src="./img/7.jpg" />
+  <img draggable="true" src="./img/8.jpg" />
+  <img draggable="true" src="./img/9.jpg" />
+</div>
+```
+
+```css
+#container {
+  margin: 0 auto;
+  overflow: hidden;
+  width: 420px;
+}
+
+#container img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover; //图片保持原有尺寸比例，可能被裁剪
+  float: left;
+  border: 10px solid #ffffff;
+  cursor: move; //光标样式
+}
+```
+
+##### 关于拖放
+
+写排序功能前，需要先了解一下我们拖放 API:
+
+> 在 HTML5 标准实施之前，拖拽也是被广泛使用的，web 开发者将 click、mouseover,mousemove 组合起来实现拖放逻辑，过程略显冗余和繁琐。
+
+在 HTML5 中，拖放成为了标准的一部分，只需将元素 draggable 属性设为 true，就能够拖放元素。拖放流程大致如下图(省略了 dragleave 和 dragexit)：
+
+![未命名文件 (2).png](https://segmentfault.com/img/bVcMfiN)
+
+HTML5 不仅仅定义了拖拽的事件类型，还在事件对象中规范了一个重量级的对象：`dataTransfer`。借助它可以实现**数据传输**、**拖拽图案设定**、**拖拽文件上传**，可通过`event.dataTransfer`来访问该对象。
+
+##### 添加拖放事件
+
+由于拖动是实时的，所以没有使用`drop`而是使用了`dragover`。并且用一个变量来保存当前拖动的元素。这里使用事件委托，直接使用`#container`来监听。
+
+```js
+const node = document.querySelector("#container")
+let dragging = null //拖动的对象
+
+//拖拽开始
+node.ondragstart = (e) => {
+  //firefox设置了setData后元素才能拖动
+  e.dataTransfer.setData("for-firefox", "hello")
+  dragging = e.target
+
+  let offsetX = parseFloat(getComputedStyle(e.target).width) / 2
+  let offsetY = parseFloat(getComputedStyle(e.target).height) / 2
+  e.dataTransfer.setDragImage(e.target, offsetX, offsetY)
+}
+
+//被拖拽的元素在某个元素停留时
+node.ondragover = (e) => {
+  e.preventDefault()
+  let target = e.target //停留的某个元素
+  if (target.nodeName === "IMG" && target !== dragging) {
+    if (getIndex(dragging) < getIndex(target)) {
+      target.parentNode.insertBefore(dragging, target.nextSibling)
+    } else {
+      target.parentNode.insertBefore(dragging, target)
+    }
+  }
+}
+
+//获取元素在父元素中的索引
+function getIndex(el) {
+  let index = 0
+  if (!el || !el.parentNode) {
+    return -1
+  }
+  while (el && (el = el.previousElementSibling)) {
+    index++
+  }
+  return index
+}
+```
+
+OK，这样基本的排序就做好了，如果觉得图片切换过于生硬的话，还可以添加一些动画效果，让过渡再平滑一些。
