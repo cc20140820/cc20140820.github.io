@@ -1,0 +1,236 @@
+---
+title: 面试路上的五道JS思考题
+date: 2021-02-19
+categories: interview
+---
+
+先说说我为什么会写这个吧，从上个月开始就在准备去魔都的面试，经历了几次失败后，意识到自己基础知识的薄弱，于是开始了补习，学习过程中看到了别的笔者写的思考题与一些思路，跟着思路完成题目后感到受益匪浅，在此总结，若有错误，欢迎讨论。
+
+---
+
+回答题目的过程需要体现出自己的思考，如果能将碎片知识点串联起来，就能避免面试过程中的一问一答，提升面试官的评价，题目一共五道，包括我的回答，内容如下：
+
+###### 1.JS 分为哪两大类型？都有什么各自的特点？你该如何判断正确的类型？
+
+JS 分为 **_原始类型_** 和 **_对象类型_**
+
+**_原始类型_** 有 6 种：`undefined string symbol boolean number null`
+
+其中`number`需要注意 精度丢失的问题 比如`0.1+0.2~!==0.3`。这是因为 JS 采用`IEEE 754`双精度版本，只要是采用了`IEEE754`的语言都有这个问题，0.1 在二进制是无限循环的一些数字，而 JS 采用的标准会裁剪这些数字。可做如下转换：
+`parseFloat((0.1 + 0.2).toFixed(10)) === 0.3 // true`
+
+另一个需要注意的是`null`，因为**_原始类型_**按理说是可以通过`typeof`判断类型的，但是`typeof null`会返回 `object`。
+这是由于历史原因流传下来的 bug，JS 最初为了性能考虑使用低位存储变量的类型信息，000 开头代表的是对象，而`null`表示为全 0。
+
+**_对象类型_** 和原始类型不同的是，原始类型存储的是值，对象类型存储的是地址。
+当创建一个对象类型的变量时，计算机会在内存中开辟一个空间来存值，但我们需要找到这个空间，这个空间会拥有一个地址。
+处理对象类型的变量时，需要注意由于传递的是地址，会发生改变一方其他也都被改变的情况，我们可以采用**_深、浅拷贝_**的方式来避免。
+
+浅拷贝方式：`Object.assign({}, a)` 或者 `{ ...a }`
+
+- 浅拷贝解决了第一层的问题，但是当对象类型中的值还有对象类型的话，就需要使用深拷贝了。
+- 深拷贝方式：lodash 的深拷贝函数。（由于深拷贝实现过程复杂，需要考虑很多边界，建议使用`lodash`）
+
+`typeof`可以准确判断原始类型(除`null`)，但是对于对象来说，除了函数都会显示`object`，判断一个对象的正确类型，可以使用`instanceof`，因为内部机制是通过原型链来判断的，我们可以试着实现一下`instanceof`:
+
+```
+function myInstanceof(left, right) {
+  let prototype = right.prototype
+  left = left.__proto__
+  while (true) {
+    if (left === null || left === undefined)
+      return false
+    if (prototype === left)
+      return true
+    left = left.__proto__
+  }
+}
+```
+
+以下是对实现的分析：
+
+- 首先获取类型的原型
+- 然后获得对象的原型
+- 然后一直循环判断对象的原型是否等于类型的原型，直到对象原型为 `null`，因为原型链最终为 `null`
+
+但是`instanceof`也不是完全可信，因为可以通过`Symbol.hasInstance`自定义`instanceof`行为。
+
+所以我们可以通过`typeof`判断原始类型，通过原型的`constructor`属性判断对象类型，实现如下：
+
+```
+function judge(v){
+    if(typeof v === 'object' || typeof v === 'function'){
+        if(v){
+            return v.constructor.name
+        }else{
+            return 'null'
+        }
+    }else{
+        return typeof v
+    }
+}
+console.log(judge(null),judge(1),judge('nice'),judge(true),judge({a:1}),judge(()=>{}))
+//输出：null number string boolean Object Function
+```
+
+---
+
+###### 2.你理解的原型是什么？
+
+对于新建出来的对象 `obj` 来说，可以通过 `__proto__` 找到一个原型对象，在原型中定义了很多函数让我们来使用，比如`valueOf`、`toString`。并且原型对象可以通过 `constructor` 找到它的构造函数，可用来判断对象的类型。
+
+其实原型链就是多个对象通过 `__proto__` 的方式连接了起来。为什么 `obj` 可以访问到 `valueOf` 函数？就是因为 `obj` 通过原型链找到了 `valueOf`。
+
+我们也可以使用原型链实现继承，比如组合继承：
+
+```
+//组合继承
+function Parent(value) {
+	this.val = value
+}
+Parent.prototype.getValue = function() {
+	console.log(this.val)
+}
+function Child(value) {
+	Parent.call(this, value)
+}
+Child.prototype = new Parent()
+
+const child = new Child(1)
+
+child.getValue() // 1
+child instanceof Parent // true
+```
+
+在 ES6 中，就不需要再手写原型链了，可直接通过`class`实现继承：
+
+```
+//class继承
+class Parent {
+    constructor(value) {
+        this.val = value
+    }
+    getValue() {
+        console.log(this.val)
+    }
+}
+class Child extends Parent {
+    constructor(value) {
+        super(value)
+        this.val = value
+    }
+}
+let child = new Child(1)
+child.getValue() // 1
+child instanceof Parent // true
+```
+
+---
+
+###### 3.bind、call 和 apply 各自有什么区别？
+
+`call`，`apply`，`bind` 是函数原型上的方法，作用都是改变上下文(`this`指向)。
+
+- `call` 会在传入的`this`中调用方法，第二个参数到最后一个参数全都用逗号分隔 `fn.call(context,1,2,3)`。
+
+- `apply` 会在传入的`this`中调用方法，所有参数都放在一个数组里面传进去 `fn.apply(context,[1,2,3])`。
+- `bind`和`call`传参一致，但它不会立即执行，它会返回改变`this`指向之后的方法。
+
+说到`this`，就不得不说判断`this`的几种规则：
+
+- 形如：`foo()`，`this`指向全局对象(浏览器是`window`，`Node`中是`global`),严格模式下是`undefined`
+
+- 形如：`obj.foo()`，`this`指向`obj`
+
+- 形如：`foo.call(context,param1,param2,...)`，`this`指向`context`
+
+- 形如：`new foo()`，`this`指向新创建的对象
+
+  new 的执行过程：
+  新生成一个对象->链接到原型->绑定 this->返回新对象
+
+以上就是 `this` 的规则了，但是可能会发生多个规则同时出现的情况，这时候会根据优先级来决定 `this` 指向，优先级排序如下：
+
+`new` > `bind/call/apply` > `obj.foo()` > `foo()`
+
+同时，箭头函数不存在`this`，如果其中出现`this`那就是外层的`this`。
+
+---
+
+###### 4.ES6 中有使用过什么？
+
+**_1.let/const_**
+
+`var`声明的变量存在变量提升，这会把声明提升到作用域顶部，并且 `var` 在全局作用域下声明变量会导致变量挂载在 `window` 上。
+`let`、`const`声明的变量只能在当前的块级作用域里访问，有“暂时性死区”的特性，也就是说声明前不可用。
+`const`一般用来声明常量，需要给初始值，并且不能再次赋值。
+
+**_2.class_**
+
+其实在 JS 中并不存在类，`class` 只是语法糖，本质还是函数。
+传统方法是通过构造函数，定义并生成新对象,ES6 提供了更接近传统语言的写法，引入了`Class`这个概念，作为对象的模板。
+
+构造函数的`prototype`属性，在 ES6 的“类”上面继续存在。事实上，类的所有方法都定义在类的`prototype`属性上面。在类的实例上面调用方法，其实就是调用原型上的方法。
+
+之前都是通过原型去解决的继承的问题的，在 ES6 中，我们可以使用 class 去实现继承。核心在于使用 `extends` 表明继承自哪个父类，并且在子类构造函数中必须调用 `super` 继承父类的属性，这段代码可以看成 `Parent.call(this, value)`。
+
+**_3.promise_**
+
+`Promise`是 ES6 提出的异步解决方案，用链式表达取代了回调函数。
+`Promise` 有三种状态，分别是 `pending resolved rejected`，一旦从`pending`状态变成为其他状态就永远不能更改状态了。
+
+`Promise` 实现了链式调用，也就是说每次调用 `then` 之后返回的都是一个 `Promise`，并且是一个全新的 `Promise`，原因也是因为状态不可变。
+
+还有一点，当我们在构造 `Promise` 的时候，构造函数内部的代码是立即执行的，这在判断代码执行顺序时需要知道。
+
+最后，它也是存在一些缺点的，比如无法停止`Promise`，或许可以通过自定义`reject`返回的标志位或手动抛出异常的方式达到目的，但终究不够优雅。
+
+`Promise`之后在 ES7 中出现的 `async/await` 算是异步编程的终极方案。
+
+一个函数如果加上 `async` ，那么该函数就会返回一个 `Promise`，
+`async` 就是将函数返回值使用 `Promise.resolve()` 包裹，和 `then` 中处理返回值一样，并且 `await` 只能配套 `async` 使用，相比直接使用 `Promise` 来说，优势在于处理 `then` 的调用链，毕竟写一大堆 `then` 也很恶心，并且也能优雅地解决回调地狱问题。
+
+当然也存在一些缺点，因为 `await` 将异步代码改造成了同步代码，如果多个异步代码没有依赖性却使用了 `await` 会导致性能上的降低，不如直接使用`Promise.all`的方式。
+
+---
+
+###### 5.JS 是如何运行的？
+
+众所周知，JS 是单线程运行的。
+
+当你打开一个 Tab 页时，其实就是创建了一个进程，一个进程中可以有多个线程，比如渲染线程、JS 引擎线程、HTTP 请求线程等等。
+当你发起一个请求时，其实就是创建了一个线程，当请求结束后，该线程可能就会被销毁。
+
+在 JS 运行的时候可能会阻止 UI 渲染，说明 JS 引擎线程和渲染线程是互斥的，这其中的原因是因为 JS 可以修改 DOM，如果在 JS 执行的时候 UI 线程还在工作，就可能导致不能安全的渲染 UI。这其实也是一个单线程的好处，得益于 JS 是单线程运行的，可以达到节省内存，节约上下文切换时间，没有锁的问题的好处。
+
+JS 是根据执行栈运行的，当开始执行 JS 代码时，首先会执行一个 `main` 函数，然后执行我们的代码。根据先进后出的原则，后执行的函数会先弹出执行栈，如下动图所示：
+![image](https://segmentfault.com/img/bVcOL2c)
+
+下面说说异步代码的执行：
+
+当遇到异步的代码时，会被挂起并在需要执行的时候加入到 Task（有多种 Task） 队列中。
+一旦执行栈为空，`Event Loop` 就会从 `Task` 队列中拿出需要执行的代码并放入执行栈中执行，所以本质上来说 JS 中的异步还是同步行为。
+不同的任务源会被分配到不同的 Task 队列中，任务源可以分为 微任务（`microtask`） 和 宏任务（`macrotask`)，大致如下图：
+
+![image](https://segmentfault.com/img/bVcOL2K)
+
+浏览器中 `Event Loop`执行顺序如下所示：
+
+首先执行同步代码，这属于宏任务
+当执行完所有同步代码后，执行栈为空，查询是否有异步代码需要执行
+执行所有微任务
+当执行完所有微任务后，如有必要会渲染页面
+然后开始下一轮 `Event Loop`，执行宏任务中的异步代码，也就是 `setTimeout` 中的回调函数
+
+- 微任务包括 `process.nextTick ，promise ，MutationObserver`。
+
+- 宏任务包括 `script ， setTimeout ，setInterval ，setImmediate ，I/O ，UI rendering`。
+
+这里很多人会有个误区，认为微任务快于宏任务，其实是错误的。因为宏任务中包括了 `script` ，浏览器会先执行一个宏任务，接下来有异步代码的话才会先执行微任务。
+
+而 `Node` 中的 `Event Loop` 和浏览器中的是完全不相同的东西。这里就不说明了(我不会)。
+
+---
+
+我相信这五道题看上去并不难，每人都能回答出个大概，但关键点在于阐述的时候需要条理清晰，组织好语言，表达能力应该也是面试中考察的一点吧，最后希望自己能在二月的尾巴拿到心仪的 Offer。
+Good Luck 🍀

@@ -1,0 +1,155 @@
+---
+title: 浅谈常用Hook使用方法与使用场景
+date: 2020-12-05
+categories: note
+---
+
+本文涉及到 `useState useReducer useContext useEffect useRef useMemo useCallback`这几个常用的 hook，会简单讲讲各个 hook 的作用与使用场景。
+
+##### useState & useReducer
+
+`const [state, setState] = useState(initialState) `
+useState 用于管理页面中的状态，返回当前状态和改变当前状态的方法，可以说是最常用的 hook。
+
+`const [state, dispatch] = useReducer(reducer, initialState) `
+useReducer 用于保存页面中复杂结构的状态，返回当前状态和改变当前状态的方法。
+
+至于为什么要将这两个 hook 放在一起说明，是因为这两个 hook 的实现逻辑是一样的，从源码角度来说，useState 只是预设了 reducer 的 useReducer。
+
+能用 useReducer 实现的功能，同样可以用 useState 实现，只不过当状态结构比较复杂时，用 useReducer 实现会更为方便。
+
+下面分别用 useState 和 useReducer 实现了一个累加器：
+
+```js
+function CounterByUS() {
+  const [num, setNum] = useState(0)
+  return (
+    <>
+      {sum}
+      <button onClick={() => dispatch(1)}>Add 1</button>
+    </>
+  )
+}
+
+function CounterByUR() {
+  const [sum, dispatch] = useReducer((state, action) => {
+    return state + action
+  }, 0)
+  return (
+    <>
+      {sum}
+      <button onClick={() => dispatch(1)}>Add 1</button>
+    </>
+  )
+}
+```
+
+可见 useState 实现的功能，同样可用 useReducer 实现。
+
+###### useContext
+
+如果页面层级较深，并且需要子组件触发 state 变化，可以考虑 `useReducer+useContext`实现，思路就是把 useReducer 返回的 dispatch 函数作为 Context 中的 value 共享到 Context 包裹的所有子组件。
+
+useContext 是以 Hook 的方式使用 React.Context，对它所包含的组件树提供全局共享数据，使用方式如下：
+
+```js
+const ThemeContext = React.createContext()
+;<ThemeContext.Provider value={{ color: "red" }}>
+  <Header />
+  <SiberBar />
+  <Content />
+</ThemeContext.Provider>
+
+function Header(props) {
+  const { color } = useContext(ThemeContext)
+  return <div style={{ background: color }}>header</div>
+}
+```
+
+##### useEffect
+
+`useEffect(callback,deps)`
+
+当 deps 中的内容变化,执行 callback。
+一般用于剥离副作用，比如网络请求。
+
+##### useMemo & useCallback
+
+`callback() = useMemo(callback,deps)`
+当 deps 中的内容变化，执行 callback 并返回结果。
+可以缓存结果，一般用于性能优化。
+
+使用场景如下：
+
+```js
+const memoizedValue = useMemo(() => computeExpensiveValue(a, b), [a, b])
+```
+
+---
+
+`callback = useCallback(callback,deps)`
+
+当 deps 中的内容变化，返回 callback 函数。
+可以缓存函数，一般用于性能优化。
+
+使用场景如下：
+
+```js
+const memoizedCallback = useCallback(() => {
+  doSomething(a, b)
+}, [a, b])
+```
+
+返回的（memoizedValue ｜ memoizedCallback）只有当 a、b 发生变化时才会变化,一般把这样一个（memoizedValue ｜ memoizedCallback）作为 deps 给 useEffect。它们的使用场景类似，通过对目标进行缓存达到性能优化的目的，以此减少不必要的执行。
+
+##### useRef
+
+`{current: initialValue} = useRef(initialValue)`
+
+返回一个简单对象{current: initialValue}, 与自建的对象的区别在于，ref 对象在整个生命周期内保持不变，也正因如此，可以用 useRef 代替 useMemo 和 useCallback，只需要把对象赋值给 current 即可。
+
+可以通过 ref 属性绑定到组件上获得组件的引用，也可以通过 ref 赋予父组件调用子组件方法的能力。
+
+可以绑定到 input 上以控制焦点，也可以绑定到子组件上调用子类方法，演示代码如下：
+
+```js
+function RefDemo() {
+  const domRef = useRef(1)
+  const childRef = useRef(null)
+  const showChild = () => {
+    childRef.current.say()
+  }
+  return (
+    <div>
+      <h2>这是外层组件</h2>
+      <div
+        onClick={() => {
+          domRef.current.focus()
+          domRef.current.value = "hello"
+        }}
+      >
+        <label>这是一个dom节点</label>
+        <input ref={domRef} />
+      </div>
+      <p onClick={showChild}>这是子组件</p>
+      <div>
+        <Child ref={childRef} />
+      </div>
+    </div>
+  )
+}
+
+const Child = forwardRef((props, ref) => {
+  useImperativeHandle(ref, () => ({
+    say: sayHello,
+  }))
+  const sayHello = () => {
+    alert("hello,我是子组件")
+  }
+  return <h3>子组件</h3>
+})
+```
+
+_`forwardRef`会创建一个 React 组件，这个组件能够将其接受的 ref 属性转发到其组件树下的另一个组件中。_
+_`useImperativeHandle(ref,createHandle,[deps])`可以将自定义函数暴露给父组件的实例值。_
+_`useImperativeHandle`应该与`forwradRef`搭配使用_
