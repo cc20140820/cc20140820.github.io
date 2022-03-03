@@ -2,6 +2,7 @@
 title: 拖放排序
 date: 2019-09-12
 categories: note
+tags: draggable
 ---
 
 > 今天偶然看到 HTML5 的拖拽新特性，比较感兴趣，通过一个简单的 demo 学习学习。

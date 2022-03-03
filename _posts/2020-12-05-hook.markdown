@@ -2,6 +2,7 @@
 title: 浅谈常用Hook使用方法与使用场景
 date: 2020-12-05
 categories: note
+tags: react-hook
 ---
 
 本文涉及到 `useState useReducer useContext useEffect useRef useMemo useCallback`这几个常用的 hook，会简单讲讲各个 hook 的作用与使用场景。

@@ -1,7 +1,9 @@
 ---
 title: 这一年的React经历
 date: 2020-08-05
-categories: note
+categories: 
+  - journal
+  - project
 ---
 
 _算算时间，从第一次接触 react 项目到现在已经一年时间，期间一直想写点 react 的开发心得与经验，但是由于各种原因搁置了(其实就是懒 hhh)，这一年也接触了一些项目，现在按照时间线浅谈一下项目经历，也为之后计划写的 React 笔记理理思路_
